@@ -1,0 +1,28 @@
+"""
+def set_angulo_inicial():
+    
+    rd      = randint(30, 60)
+    x       = math.cos(rd)
+    y       = math.sin(rd)
+
+    rd      = randint(0, 100)
+    side_x  = -1 if rd < 50 else 1
+    rd      = randint(0,100)
+    side_y  = -1 if rd < 50 else 1
+    
+    return x * side_x, y * side_y
+"""
+            if self.move_x:
+                self.move_y = True
+                self.move_x = False
+            else:
+                self.move_y = False
+                self.move_x = True
+
+            self.dir *= -1            
+        if self.move_y:
+            self.move_down()
+            self.move_x = True
+            self.move_y = False
+
+#print("1: x = %d | y = %d"%(self.pos_x2, self.pos_y2))
