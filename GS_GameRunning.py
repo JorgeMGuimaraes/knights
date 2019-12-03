@@ -6,6 +6,7 @@ from    PPlay.gameimage         import  *
 from    PPlay.keyboard          import  *
 from    PPlay.mouse             import  *
 from    GameStates              import  *
+from    Tile                    import  *
 #End Region
 
 class GS_GameRunning():
@@ -20,10 +21,13 @@ class GS_GameRunning():
         self.x_space            = 70
         self.y_space            = 70
         self.top_bar            = 150
-        self.largura_tabuleiro  = 12 * self.x_space
+        self.linhas             = 6
+        self.colunas            = 12
+        self.largura_tabuleiro  = self.colunas * self.x_space
         self.create_matrix()
         self.create_enemies_list()
         self.min_time   = 0.5
+
         return
     
     def on_state_enter(self):
@@ -61,6 +65,10 @@ class GS_GameRunning():
         self.game_images.append(bg)
         self.game_images.append(energia)
         self.game_images.append(placar)
+
+
+        self.tile = Tile(self.game_mngr, self.janela.width - 100, 0, "Assets/images/escudo.png")
+        self.game_images.append(self.tile.game_image)
         return
 
     def create_matrix(self):
@@ -68,16 +76,16 @@ class GS_GameRunning():
         import random
         random.seed()
         pieces              = dict()
-        pieces["A"]         = "Assets/images/escudo.png"
-        pieces["B"]         = "Assets/images/espada.png"
-        pieces["C"]         = "Assets/images/espada_dupla.png"
-        pieces["Mac"]       = "Assets/images/machadinha.png"
+        pieces["escudo"]    = "Assets/images/escudo.png"
+        pieces["espada"]    = "Assets/images/espada.png"
+        pieces["supla"]     = "Assets/images/espada_dupla.png"
+        pieces["machado"]   = "Assets/images/machadinha.png"
         start_x             = 10
         x, y                = start_x, self.top_bar
         self.matrix_parent  = []
-        for i in range(6):
+        for i in range(self.linhas):
             line    = []
-            for j in range(12):                
+            for j in range(self.colunas):                
                 e_type  = random.choice(list(pieces.keys()))
                 p       = GameImage(pieces[e_type])
                 p.set_position(x, y)
