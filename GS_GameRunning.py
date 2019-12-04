@@ -7,6 +7,7 @@ from    PPlay.keyboard          import  *
 from    PPlay.mouse             import  *
 from    GameStates              import  *
 from    Tile                    import  *
+from    Enemy                   import  *
 #End Region
 
 class GS_GameRunning():
@@ -28,8 +29,9 @@ class GS_GameRunning():
         self.linhas             = 6
         self.colunas            = 12
         self.largura_tabuleiro  = self.colunas * self.x_space
-        self.tabuleiro = []
-        self.create_enemies_list()
+        self.tabuleiro          = []
+        self.inimigos           = []
+        #self.create_enemies_list()
         self.min_time           = 0.5
         self.current_state      = Running_Start(self.game, self)
         return
@@ -38,7 +40,7 @@ class GS_GameRunning():
         self.timer              = 0
         self.is_primeiro_click  = False
         #self.create_matrix()
-        self.current_state.create_matrix()
+        #self.current_state.create_matrix()
         return
     
     def on_state_exit(self):
@@ -55,7 +57,7 @@ class GS_GameRunning():
     def render(self):
         dsman.drawStack(self.game_images)
         #for line in self.matrix_parent: dsman.drawStack(line)
-        dsman.drawStack(self.enemies_parent)
+        #dsman.drawStack(self.enemies_parent)
 
         self.janela.update()
         return
@@ -69,30 +71,6 @@ class GS_GameRunning():
         self.game_images.append(bg)
         self.game_images.append(energia)
         self.game_images.append(placar)
-
-
-        self.tile = Tile(self.game, self.janela.width - 100, 0, "Assets/images/escudo.png")
-        self.game_images.append(self.tile.game_image)
-        return
-
-    def create_enemies_list(self):
-        
-        import random
-        random.seed()
-        enemies      = dict()
-        enemies["1_verde"]  = "Assets/images/Inimigo_1_verde.png"
-        enemies["1_verm"]   = "Assets/images/Inimigo_1_verm.png"
-        enemies["2"]        = "Assets/images/Inimigo_2.png"
-        enemies["3"]        = "Assets/images/Inimigo_3.png"
-        start_x             = 10
-        x, y                = start_x, 25
-        self.enemies_parent = []
-        for j in range(12):                
-            e_type  = random.choice(list(enemies.keys()))
-            e       = GameImage(enemies[e_type])
-            e.set_position(x, y)
-            self.enemies_parent.append(e)
-            x       += self.x_space
         return
 
     def pegar_posicao_primeiro_click(self):
@@ -158,16 +136,22 @@ class Running_Start():
         """
         self.game       = game
         self.running    = running
-    
+        self.create_matrix()
+        self.create_enemies_list()
+        return
+
     def do(self):
         return
     
+    
+
     def create_matrix(self):
         """
         Cria a matriz de pecas do tabuleiro
         """
         import random
         random.seed()
+        #TODO: ver se eh possivel remover dicionario e ser somente lista
         pecas_disponiveis   = {"escudo":"Assets/images/escudo.png", "espada":"Assets/images/espada.png", "dupla":"Assets/images/espada_dupla.png", "machado":"Assets/images/machadinha.png"}
         x_start, y_start    = 10, self.running.top_bar
         x, y                = x_start, y_start
@@ -191,4 +175,21 @@ class Running_Start():
             self.running.tabuleiro.append(coluna)
             x       += self.running.x_space
             y       = y_start
+        return
+
+    def create_enemies_list(self):
+        """
+        Cria lista de inimigos e os posiciona na tela
+        """
+        import random
+        random.seed()
+        enemies             = ["Assets/images/Inimigo_1_verde.png", "Assets/images/Inimigo_1_verm.png", "Assets/images/Inimigo_2.png", "Assets/images/Inimigo_3.png"]
+        start_x, start_y    = 10, 25
+        x, y                = start_x, start_y
+        for j in range(self.running.colunas):                
+            e_type  = random.choice(enemies)
+            enemy   = Enemy(self.game, x, y, e_type)
+            self.running.inimigos.append(enemy)
+            self.running.game_images.append(enemy.game_image)
+            x       += self.running.x_space
         return
