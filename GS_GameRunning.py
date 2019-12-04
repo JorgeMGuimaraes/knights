@@ -22,7 +22,7 @@ class GS_GameRunning():
         self.mouse              = self.janela.get_mouse()
         self.teclado            = self.janela.get_keyboard()
         self.game_images        = []
-        self.set_images()
+        #self.set_images()
         self.x_space            = 70
         self.y_space            = 70
         self.top_bar            = 150
@@ -31,7 +31,6 @@ class GS_GameRunning():
         self.largura_tabuleiro  = self.colunas * self.x_space
         self.tabuleiro          = []
         self.inimigos           = []
-        #self.create_enemies_list()
         self.min_time           = 0.5
         self.current_state      = Running_Start(self.game, self)
         return
@@ -39,8 +38,6 @@ class GS_GameRunning():
     def on_state_enter(self):
         self.timer              = 0
         self.is_primeiro_click  = False
-        #self.create_matrix()
-        #self.current_state.create_matrix()
         return
     
     def on_state_exit(self):
@@ -62,16 +59,16 @@ class GS_GameRunning():
         self.janela.update()
         return
 
-    def set_images(self):
-        bg      = GameImage("Assets/images/bg.png")
-        energia = GameImage("Assets/images/energia.png")
-        energia.set_position(900,150)
-        placar  = GameImage("Assets/images/placar.png")
-        placar.set_position(self.janela.width - placar.width, 50)
-        self.game_images.append(bg)
-        self.game_images.append(energia)
-        self.game_images.append(placar)
-        return
+    #def set_images(self):
+    #    bg      = GameImage("Assets/images/bg.png")
+    #    energia = GameImage("Assets/images/energia.png")
+    #    energia.set_position(900,150)
+    #    placar  = GameImage("Assets/images/placar.png")
+    #    placar.set_position(self.janela.width - placar.width, 50)
+    #    self.game_images.append(bg)
+    #    self.game_images.append(energia)
+    #    self.game_images.append(placar)
+    #    return
 
     def pegar_posicao_primeiro_click(self):
         if not self.is_primeiro_click:                    
@@ -136,6 +133,7 @@ class Running_Start():
         """
         self.game       = game
         self.running    = running
+        self.set_images()
         self.create_matrix()
         self.create_enemies_list()
         return
@@ -143,7 +141,16 @@ class Running_Start():
     def do(self):
         return
     
-    
+    def set_images(self):
+        bg      = GameImage("Assets/images/bg.png")
+        energia = GameImage("Assets/images/energia.png")
+        energia.set_position(900,150)
+        placar  = GameImage("Assets/images/placar.png")
+        placar.set_position(self.game.janela.width - placar.width, 50)
+        self.running.game_images.append(bg)
+        self.running.game_images.append(energia)
+        self.running.game_images.append(placar)
+        return
 
     def create_matrix(self):
         """
