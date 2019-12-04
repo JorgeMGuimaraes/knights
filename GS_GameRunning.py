@@ -10,13 +10,17 @@ from    Tile                    import  *
 #End Region
 
 class GS_GameRunning():
-    game_images             = []
+    
 
     def __init__(self, game_mngr):
-        self.game_mngr          = game_mngr
-        self.janela             = self.game_mngr.janela
+        """
+        Estado do jogo enquando a partida acontece
+        """
+        self.game               = game_mngr
+        self.janela             = self.game.janela
         self.mouse              = self.janela.get_mouse()
         self.teclado            = self.janela.get_keyboard()
+        self.game_images        = []
         self.set_images()
         self.x_space            = 70
         self.y_space            = 70
@@ -24,33 +28,33 @@ class GS_GameRunning():
         self.linhas             = 6
         self.colunas            = 12
         self.largura_tabuleiro  = self.colunas * self.x_space
-        self.create_matrix()
+        self.tabuleiro = []
         self.create_enemies_list()
-        self.min_time   = 0.5
-
+        self.min_time           = 0.5
+        self.current_state      = Running_Start(self.game, self)
         return
     
     def on_state_enter(self):
         self.timer              = 0
         self.is_primeiro_click  = False
+        #self.create_matrix()
+        self.current_state.create_matrix()
         return
     
     def on_state_exit(self):
         return
 
     def process_inputs(self):
-        if self.teclado.key_pressed("ESC"): self.game_mngr.change_state(GameStates.Menu)
+        if self.teclado.key_pressed("ESC"): self.game.change_state(GameStates.Menu)
         return
 
     def update(self):
-        #self.pegar_posicao_primeiro_click()
-        #self.pegar_posicao_segundo_click()
         self.change_on_mouse_click()
         return
 
     def render(self):
         dsman.drawStack(self.game_images)
-        for line in self.matrix_parent: dsman.drawStack(line)
+        #for line in self.matrix_parent: dsman.drawStack(line)
         dsman.drawStack(self.enemies_parent)
 
         self.janela.update()
@@ -67,33 +71,8 @@ class GS_GameRunning():
         self.game_images.append(placar)
 
 
-        self.tile = Tile(self.game_mngr, self.janela.width - 100, 0, "Assets/images/escudo.png")
+        self.tile = Tile(self.game, self.janela.width - 100, 0, "Assets/images/escudo.png")
         self.game_images.append(self.tile.game_image)
-        return
-
-    def create_matrix(self):
-        
-        import random
-        random.seed()
-        pieces              = dict()
-        pieces["escudo"]    = "Assets/images/escudo.png"
-        pieces["espada"]    = "Assets/images/espada.png"
-        pieces["supla"]     = "Assets/images/espada_dupla.png"
-        pieces["machado"]   = "Assets/images/machadinha.png"
-        start_x             = 10
-        x, y                = start_x, self.top_bar
-        self.matrix_parent  = []
-        for i in range(self.linhas):
-            line    = []
-            for j in range(self.colunas):                
-                e_type  = random.choice(list(pieces.keys()))
-                p       = GameImage(pieces[e_type])
-                p.set_position(x, y)
-                line.append(p)
-                x       += self.x_space
-            self.matrix_parent.append(line)
-            x       = start_x
-            y       += self.y_space
         return
 
     def create_enemies_list(self):
@@ -170,3 +149,46 @@ class GS_GameRunning():
         self.matrix_parent[self.pos_y2][self.pos_x2].set_image(temp1)
         return
         #End Region
+
+class Running_Start():
+
+    def __init__(self, game, running):
+        """
+        Subestado inicial do estado Running. Inicia o tabuleiro e confere se esta tudo ok
+        """
+        self.game       = game
+        self.running    = running
+    
+    def do(self):
+        return
+    
+    def create_matrix(self):
+        """
+        Cria a matriz de pecas do tabuleiro
+        """
+        import random
+        random.seed()
+        pecas_disponiveis   = {"escudo":"Assets/images/escudo.png", "espada":"Assets/images/espada.png", "dupla":"Assets/images/espada_dupla.png", "machado":"Assets/images/machadinha.png"}
+        x_start, y_start    = 10, self.running.top_bar
+        x, y                = x_start, y_start
+        anterior_esq        = [None] * self.running.linhas
+        anterior_acima      = None
+
+        for i in range(self.running.colunas):
+            coluna  = []
+            for j in range(self.running.linhas):
+                possiveis_escolhas = list(pecas_disponiveis.values())
+                if possiveis_escolhas.count(anterior_esq[j]) > 0: possiveis_escolhas.remove(anterior_esq[j])
+                if possiveis_escolhas.count(anterior_acima) > 0: possiveis_escolhas.remove(anterior_acima)
+            
+                e_type          = random.choice(possiveis_escolhas)
+                tile            = Tile(self.game, x, y, e_type)
+                coluna.append(tile)
+                self.running.game_images.append(tile.game_image)
+                y               += self.running.y_space
+                anterior_esq[j] = e_type
+                anterior_acima  = e_type
+            self.running.tabuleiro.append(coluna)
+            x       += self.running.x_space
+            y       = y_start
+        return
