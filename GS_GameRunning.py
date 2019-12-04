@@ -22,22 +22,17 @@ class GS_GameRunning():
         self.mouse              = self.janela.get_mouse()
         self.teclado            = self.janela.get_keyboard()
         self.game_images        = []
-        #self.set_images()
         self.x_space            = 70
         self.y_space            = 70
         self.top_bar            = 150
         self.linhas             = 6
         self.colunas            = 12
-        self.largura_tabuleiro  = self.colunas * self.x_space
         self.tabuleiro          = []
         self.inimigos           = []
-        self.min_time           = 0.5
-        self.current_state      = Running_Start(self.game, self)
         return
     
     def on_state_enter(self):
-        self.timer              = 0
-        self.is_primeiro_click  = False
+        self.current_state      = Running_Start(self.game, self)
         return
     
     def on_state_exit(self):
@@ -48,89 +43,20 @@ class GS_GameRunning():
         return
 
     def update(self):
-        self.change_on_mouse_click()
+        self.current_state.do()
         return
 
     def render(self):
         dsman.drawStack(self.game_images)
-        #for line in self.matrix_parent: dsman.drawStack(line)
-        #dsman.drawStack(self.enemies_parent)
-
         self.janela.update()
         return
-
-    #def set_images(self):
-    #    bg      = GameImage("Assets/images/bg.png")
-    #    energia = GameImage("Assets/images/energia.png")
-    #    energia.set_position(900,150)
-    #    placar  = GameImage("Assets/images/placar.png")
-    #    placar.set_position(self.janela.width - placar.width, 50)
-    #    self.game_images.append(bg)
-    #    self.game_images.append(energia)
-    #    self.game_images.append(placar)
-    #    return
-
-    def pegar_posicao_primeiro_click(self):
-        if not self.is_primeiro_click:                    
-            self.timer  += self.janela.delta_time()
-            clicked     = self.mouse.is_button_pressed(1)            
-            if self.timer >= self.min_time and clicked:
-                self.is_primeiro_click      = True
-                self.pos_x1, self.pos_y1    = self.get_x_y()
-                self.timer                  = 0
-
-        return
-    def pegar_posicao_segundo_click(self):
-        self.timer      += self.janela.delta_time()
-        clicked         = self.mouse.is_button_pressed(1)
-        if self.timer >= self.min_time and clicked and self.is_primeiro_click:
-            self.is_primeiro_click      = False
-            self.pos_x2, self.pos_y2    = self.get_x_y()
-            if abs(self.pos_x2 - self.pos_x1) == 1 or abs(self.pos_y2 - self.pos_y1) == 1:
-                self.trocar_posicao()                
-            self.timer  = 0
-        return
-    
-    def change_on_mouse_click(self):
-        self.timer      += self.janela.delta_time()
-        clicked         = self.mouse.is_button_pressed(1)
-        if self.timer >= self.min_time and clicked:
-            if not self.is_primeiro_click:
-                self.pos_x1, self.pos_y1    = self.get_x_y()
-                self.is_primeiro_click      = True
-            else:
-                self.pos_x2, self.pos_y2    = self.get_x_y()
-                if (abs(self.pos_x2 - self.pos_x1) == 1 and self.pos_y1 == self.pos_y2) or \
-                    (abs(self.pos_y2 - self.pos_y1) == 1 and self.pos_x1 == self.pos_x2) :
-                    self.trocar_posicao()
-                    self.is_primeiro_click = False
-            self.timer = 0
-        return
-
-    def get_x_y(self):
-        """
-        Retorna indices (tupla x, y) de coluna e linha da matriz de pecas, numeros fora de alcance para as comparacoes serem validas
-        """
-        mouse_x, mouse_y    = self.mouse.get_position()
-        if mouse_x > self.largura_tabuleiro or mouse_y < self.top_bar:
-            self.is_primeiro_click = False
-            return 1000, 1000
-        return mouse_x // self.x_space, (mouse_y - self.top_bar ) // self.y_space
-
-    def trocar_posicao(self):
-        temp1 = self.matrix_parent[self.pos_y1][self.pos_x1].image_ref
-        temp2 = self.matrix_parent[self.pos_y2][self.pos_x2].image_ref
-        self.matrix_parent[self.pos_y1][self.pos_x1].set_image(temp2)
-        self.matrix_parent[self.pos_y2][self.pos_x2].set_image(temp1)
-        return
-        #End Region
+    #End Region
 
 class Running_Start():
-
+    """
+    Subestado inicial do estado Running. Inicia o tabuleiro, inimigos e outros elementos do jogo
+    """
     def __init__(self, game, running):
-        """
-        Subestado inicial do estado Running. Inicia o tabuleiro e confere se esta tudo ok
-        """
         self.game       = game
         self.running    = running
         self.set_images()
@@ -139,6 +65,7 @@ class Running_Start():
         return
 
     def do(self):
+        self.running.current_state = Running_In_game(self.game, self.running)
         return
     
     def set_images(self):
@@ -170,7 +97,7 @@ class Running_Start():
             for j in range(self.running.linhas):
                 possiveis_escolhas = list(pecas_disponiveis.values())
                 if possiveis_escolhas.count(anterior_esq[j]) > 0: possiveis_escolhas.remove(anterior_esq[j])
-                if possiveis_escolhas.count(anterior_acima) > 0: possiveis_escolhas.remove(anterior_acima)
+                if possiveis_escolhas.count(anterior_acima) > 0 : possiveis_escolhas.remove(anterior_acima)
             
                 e_type          = random.choice(possiveis_escolhas)
                 tile            = Tile(self.game, x, y, e_type)
@@ -199,4 +126,62 @@ class Running_Start():
             self.running.inimigos.append(enemy)
             self.running.game_images.append(enemy.game_image)
             x       += self.running.x_space
+        return
+
+class Running_In_game():
+    """
+    Subestado do jogo rodando
+    """
+    def __init__(self, game, running):
+        self.game               = game
+        self.running            = running
+        self.timer              = 0
+        self.min_time           = 0.5
+        self.mouse              = self.game.janela.get_mouse()
+        self.is_primeiro_click  = False
+        self.largura_tabuleiro  = self.running.colunas * self.running.x_space
+        return
+
+    def do(self):
+        self.change_on_mouse_click()
+        return
+
+    def change_on_mouse_click(self):
+        """
+        Muda os sprites dos tiles selecionados
+        """
+        self.timer      += self.game.janela.delta_time()
+        clicked         = self.mouse.is_button_pressed(1)
+        if self.timer >= self.min_time and clicked:
+            if not self.is_primeiro_click:
+                self.pos_x1, self.pos_y1    = self.get_x_y()
+                self.is_primeiro_click      = True
+                print("T")
+            else:
+                self.pos_x2, self.pos_y2    = self.get_x_y()
+                if (abs(self.pos_x2 - self.pos_x1) == 1 and self.pos_y1 == self.pos_y2) or \
+                    (abs(self.pos_y2 - self.pos_y1) == 1 and self.pos_x1 == self.pos_x2) :
+                    self.trocar_posicao()
+                    self.is_primeiro_click = False
+            self.timer = 0
+        return
+
+    def get_x_y(self):
+        """
+        Retorna indices (tupla x, y) de coluna e linha da matriz de pecas, numeros fora de alcance para as comparacoes serem validas
+        """
+        mouse_x, mouse_y    = self.mouse.get_position()
+        if mouse_x > self.largura_tabuleiro or mouse_y < self.running.top_bar:
+            self.is_primeiro_click = False
+            return 1000, 1000
+        return mouse_x // self.running.x_space, (mouse_y - self.running.top_bar ) // self.running.y_space
+
+    def trocar_posicao(self):
+        """
+        Troca a posicao dos sprites dos tiles
+        """
+        temp_1 = self.running.tabuleiro[self.pos_x1][self.pos_y1].game_image.image_ref
+        temp_2 = self.running.tabuleiro[self.pos_x2][self.pos_y2].game_image.image_ref
+        self.running.tabuleiro[self.pos_x1][self.pos_y1].game_image.set_image(temp_2)
+        self.running.tabuleiro[self.pos_x2][self.pos_y2].game_image.set_image(temp_1)
         return
