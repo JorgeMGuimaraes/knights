@@ -149,7 +149,7 @@ class Running_No_Select():
 
     def primeiro_click(self):
         """
-        Define se o primeiro click eh valido
+        Define se o primeiro click eh valido, e seleciona uma peca
         """
         self.timer += self.game.janela.delta_time()
         clicked         = self.mouse.is_button_pressed(1)
@@ -161,8 +161,6 @@ class Running_No_Select():
         return
 
     def selecionar(self, col, lin):
-        print("%d, %d"%(lin, col))
-        print("%d, %d selecionado"%(col // self.running.x_space, (lin - self.running.top_bar ) // self.running.y_space))
         self.running.selecionado = self.running.tabuleiro[col // self.running.x_space][(lin - self.running.top_bar ) // self.running.y_space]
         self.running.selecionado.tint_in()
         return
@@ -173,12 +171,64 @@ class Running_Select_2():
         self.game       = game
         self.running    = running
         self.timer      = 0
+        self.min_time   = 0.5
         self.mouse      = self.game.janela.get_mouse()
-        print("!2")
         return
 
     def do(self):
-        #print("2")
+        self.segundo_click()
+        return
+
+    def segundo_click(self):
+        """
+        Define se o segundo click eh valido, e seleciona uma peca e/ou deseleciona a anterior
+        """
+        self.timer += self.game.janela.delta_time()
+        clicked         = self.mouse.is_button_pressed(1)
+        if self.timer >= self.min_time and clicked:
+            mouse_x, mouse_y    = self.mouse.get_position()
+            if mouse_x > self.running.largura_tabuleiro or mouse_y < self.running.top_bar:
+                self.deselecionar()
+                self.running.current_state = Running_No_Select(self.game, self.running)
+                return
+            linha, coluna = (mouse_y - self.running.top_bar ) // self.running.y_space, mouse_x // self.running.x_space
+            segundo = self.running.tabuleiro[coluna][linha]
+            if segundo == self.running.selecionado:
+                self.deselecionar()
+                self.running.current_state = Running_No_Select(self.game, self.running)
+                return
+            vizinhos = self.lista_de_vizinhos(linha, coluna)
+            for v in vizinhos:
+                if self.running.selecionado == self.running.tabuleiro[v[0]][v[1]]:
+                    self.swap(segundo)
+                    return
+            self.selecionar(segundo)
+        return
+
+    def selecionar(self, seg):
+        self.running.selecionado.tint_out()
+        self.running.selecionado = seg
+        self.running.selecionado.tint_in()
+        self.timer = 0
+        return
+
+    def deselecionar(self):
+        self.running.selecionado.tint_out()
+        self.running.selecionado = None
+        self.timer = 0
+        return
+
+    def lista_de_vizinhos(self, linha, coluna):
+        posicoes = [[0,1],[1,0],[0,-1], [-1,0]]
+        vizinhos = []
+        for i in range(len(posicoes)):
+            if (0 <= coluna + posicoes[i][0] < self.running.colunas) and (0 <= linha + posicoes[i][1] < self.running.linhas):
+                vizinhos.append([coluna + posicoes[i][0], linha + posicoes[i][1]])
+        return vizinhos
+
+    def swap(self, segundo):
+        print("swap")
+        self.timer = 0
         return
 
 class Running_In_game():
