@@ -27,8 +27,10 @@ class GS_GameRunning():
         self.top_bar            = 150
         self.linhas             = 6
         self.colunas            = 12
+        self.largura_tabuleiro  = self.colunas * self.x_space
         self.tabuleiro          = []
         self.inimigos           = []
+        self.selecionado = None
         return
     
     def on_state_enter(self):
@@ -65,7 +67,7 @@ class Running_Start():
         return
 
     def do(self):
-        self.running.current_state = Running_In_game(self.game, self.running)
+        self.running.current_state = Running_No_Select(self.game, self.running)
         return
     
     def set_images(self):
@@ -86,7 +88,10 @@ class Running_Start():
         import random
         random.seed()
         #TODO: ver se eh possivel remover dicionario e ser somente lista
-        pecas_disponiveis   = {"escudo":"Assets/images/escudo.png", "espada":"Assets/images/espada.png", "dupla":"Assets/images/espada_dupla.png", "machado":"Assets/images/machadinha.png"}
+        caminho = "Assets/images/"
+        extensao = ".png"
+        sel = "_selecionado"
+        pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha"]
         x_start, y_start    = 10, self.running.top_bar
         x, y                = x_start, y_start
         anterior_esq        = [None] * self.running.linhas
@@ -95,12 +100,13 @@ class Running_Start():
         for i in range(self.running.colunas):
             coluna  = []
             for j in range(self.running.linhas):
-                possiveis_escolhas = list(pecas_disponiveis.values())
+                #possiveis_escolhas = list(pecas_disponiveis.values())
+                possiveis_escolhas = pecas_disponiveis.copy()
                 if possiveis_escolhas.count(anterior_esq[j]) > 0: possiveis_escolhas.remove(anterior_esq[j])
                 if possiveis_escolhas.count(anterior_acima) > 0 : possiveis_escolhas.remove(anterior_acima)
             
                 e_type          = random.choice(possiveis_escolhas)
-                tile            = Tile(self.game, x, y, e_type)
+                tile            = Tile(self.game, x, y, caminho + e_type + extensao, caminho + e_type + sel + extensao)
                 coluna.append(tile)
                 self.running.game_images.append(tile.game_image)
                 y               += self.running.y_space
@@ -128,6 +134,53 @@ class Running_Start():
             x       += self.running.x_space
         return
 
+class Running_No_Select():
+    def __init__(self, game, running):
+        self.game       = game
+        self.running    = running
+        self.timer      = 0
+        self.min_time   = 0.5
+        self.mouse      = self.game.janela.get_mouse()
+        return
+
+    def do(self):
+        self.primeiro_click()
+        return
+
+    def primeiro_click(self):
+        """
+        Define se o primeiro click eh valido
+        """
+        self.timer += self.game.janela.delta_time()
+        clicked         = self.mouse.is_button_pressed(1)
+        if self.timer >= self.min_time and clicked:
+            mouse_x, mouse_y    = self.mouse.get_position()
+            if mouse_x > self.running.largura_tabuleiro or mouse_y < self.running.top_bar: return
+            self.selecionar(mouse_x, mouse_y)
+            self.running.current_state = Running_Select_2(self.game, self.running)
+        return
+
+    def selecionar(self, col, lin):
+        print("%d, %d"%(lin, col))
+        print("%d, %d selecionado"%(col // self.running.x_space, (lin - self.running.top_bar ) // self.running.y_space))
+        self.running.selecionado = self.running.tabuleiro[col // self.running.x_space][(lin - self.running.top_bar ) // self.running.y_space]
+        self.running.selecionado.tint_in()
+        return
+
+class Running_Select_2():
+
+    def __init__(self, game, running):
+        self.game       = game
+        self.running    = running
+        self.timer      = 0
+        self.mouse      = self.game.janela.get_mouse()
+        print("!2")
+        return
+
+    def do(self):
+        #print("2")
+        return
+
 class Running_In_game():
     """
     Subestado do jogo rodando
@@ -140,13 +193,15 @@ class Running_In_game():
         self.mouse              = self.game.janela.get_mouse()
         self.is_primeiro_click  = False
         self.largura_tabuleiro  = self.running.colunas * self.running.x_space
+        self.selecionado        = None
         return
 
     def do(self):
         self.change_on_mouse_click()
+        #self.on_mouse_click()
         return
 
-    def change_on_mouse_click(self):
+    def change_on_mouse_click(self):#TODO:remover
         """
         Muda os sprites dos tiles selecionados
         """
@@ -158,7 +213,9 @@ class Running_In_game():
                 self.is_primeiro_click      = True
                 print("T")
             else:
-                self.pos_x2, self.pos_y2    = self.get_x_y()
+                mouse_x, mouse_y    = self.mouse.get_position()
+                if mouse_x > self.largura_tabuleiro or mouse_y < self.running.top_bar: self.pos_x2, self.pos_y2    = self.get_x_y()
+                
                 if (abs(self.pos_x2 - self.pos_x1) == 1 and self.pos_y1 == self.pos_y2) or \
                     (abs(self.pos_y2 - self.pos_y1) == 1 and self.pos_x1 == self.pos_x2) :
                     self.trocar_posicao()
@@ -166,17 +223,49 @@ class Running_In_game():
             self.timer = 0
         return
 
-    def get_x_y(self):
+    def on_mouse_click(self):
+        """Seleciona ou desseleciona um tile por click do mouse"""
+        self.timer      += self.game.janela.delta_time()
+        clicked         = self.mouse.is_button_pressed(1)
+
+        if self.timer >= self.min_time and clicked:
+            mouse_x, mouse_y    = self.mouse.get_position()
+            if mouse_x > self.largura_tabuleiro or mouse_y < self.running.top_bar:
+                self.desselecionar()
+                return
+            linha, coluna = self.get_x_y(mouse_x, mouse_y)
+            if(self.selecionado is None):
+                self.selecionar(linha, coluna)
+                return
+            else:
+                tmp = self.running.tabuleiro[linha][coluna]
+                if tmp == self.selecionado: self.desselecionar()
+                else:
+                    self.swap(tmp)
+        return
+
+    def get_x_y(self, x, y):
         """
         Retorna indices (tupla x, y) de coluna e linha da matriz de pecas, numeros fora de alcance para as comparacoes serem validas
         """
-        mouse_x, mouse_y    = self.mouse.get_position()
-        if mouse_x > self.largura_tabuleiro or mouse_y < self.running.top_bar:
-            self.is_primeiro_click = False
-            return 1000, 1000
-        return mouse_x // self.running.x_space, (mouse_y - self.running.top_bar ) // self.running.y_space
+        #mouse_x, mouse_y    = self.mouse.get_position()
+        #if mouse_x > self.largura_tabuleiro or mouse_y < self.running.top_bar:
+        #    self.is_primeiro_click = False
+        #    return 1000, 1000
+        return x // self.running.x_space, (y - self.running.top_bar ) // self.running.y_space
 
-    def trocar_posicao(self):
+    def selecionar(self, lin, col):
+        """Seleciona uma peca do tabuleiro"""
+        self.selecionado = self.running.tabuleiro[lin][col]
+        self.selecionado.tint_in()
+        return
+    def desselecionar(self):
+        """Desseleciona uma peca do tabuleiro"""
+        self.selecionado.tint_out()
+        self.selecionado = None
+        return
+
+    def trocar_posicao(self):#TODO: Remover
         """
         Troca a posicao dos sprites dos tiles
         """
@@ -184,4 +273,14 @@ class Running_In_game():
         temp_2 = self.running.tabuleiro[self.pos_x2][self.pos_y2].game_image.image_ref
         self.running.tabuleiro[self.pos_x1][self.pos_y1].game_image.set_image(temp_2)
         self.running.tabuleiro[self.pos_x2][self.pos_y2].game_image.set_image(temp_1)
+        return
+
+    def swap(self, tile):
+        """
+        Troca a posicao dos sprites dos tiles
+        """
+        temp_1 = tile.game_image.image_ref
+        temp_2 = self.selecionado.game_image.image_ref
+        tile.game_image.set_image(temp_2)
+        self.selecionado.game_image.set_image(temp_1)
         return

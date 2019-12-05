@@ -1,4 +1,4 @@
-Não combinar 3 em linha na criação da matriz
+[x] Não combinar 3 em linha na criação da matriz
 mover peças
 eliminar peças
 remover um inimigo
