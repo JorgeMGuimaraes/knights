@@ -97,7 +97,7 @@ class Running_Start():
         #caminho = "Assets/images/"
         #extensao = ".png"
         #sel = "_selecionado"
-        pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha"]
+        pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha", "flecha", "adaga", "punhais"]
         x_start, y_start    = 10, self.running.top_bar
         x, y                = x_start, y_start
         anterior_esq        = [None] * self.running.linhas
@@ -255,32 +255,31 @@ class Running_Match():
         self.timer      = 0
         self.min_time   = 0.5
         self.match      = False
-        #self.limpar_todos()
         return
 
     def do(self):
-        self.limpar_todos()
+        for col in range(self.running.colunas):
+            for lin in range(self.running.linhas):
+                self.limpar_todos([col, lin])
+        if self.match:
+            self.match                  = False
+            self.running.current_state  = Running_Refill(self.game, self.running)
+            return
+        self.swap_back()
+        self.running.current_state  = Running_No_Select(self.game, self.running)
         return
 
-    def limpar_todos(self):
+    def limpar_todos(self, elemento):
         horizontal                  = [[0, -1], [0, 1]]
         vertical                    = [[-1, 0], [1, 0]]
         limpar                      = []
-        limpar.extend(self.marcar(self.running.primeiro_tile_, horizontal))
-        limpar.extend(self.marcar(self.running.primeiro_tile_, vertical))
-        limpar.extend(self.marcar(self.running.segundo_tile_, horizontal))
-        limpar.extend(self.marcar(self.running.segundo_tile_, vertical))
+        limpar.extend(self.marcar(elemento, horizontal))
+        limpar.extend(self.marcar(elemento, vertical))
         if self.match:
             for tile in limpar:
-                #print("Limpar ", end="")
-                #print(tile)
                 self.running.tabuleiro[tile[0]][tile[1]].tipo = "None"
                 self.running.tabuleiro[tile[0]][tile[1]].tint_out()
-            self.match = False
-            self.running.current_state = Running_Refill(self.game, self.running)
-        else:
-            self.swap_back()
-            self.running.current_state  = Running_No_Select(self.game, self.running)
+            return
         return
             
     def marcar(self, elemento, direcoes):
@@ -305,6 +304,7 @@ class Running_Match():
         return lista_semelhantes
 
     def swap_back(self):
+        if self.running.primeiro_tile_ == None or self.running.segundo_tile_ == None: return
         tmp_tipo1                   = self.running.tabuleiro[self.running.primeiro_tile_[0]][self.running.primeiro_tile_[1]].tipo
         d1, d2                      = 'e', 'd'
         self.running.tabuleiro[self.running.primeiro_tile_[0]][self.running.primeiro_tile_[1]].current_state.swap(self.running.tabuleiro[self.running.segundo_tile_[0]][self.running.segundo_tile_[1]].tipo, d1)
@@ -318,9 +318,9 @@ class Running_Refill():
         self.running    = running
         self.timer      = 0
         self.min_time   = 0.1
-        #self.match      = False
-        #self.limpar_todos()
-        print("!")
+        self.running.primeiro_tile_ = None
+        self.running.segundo_tile_ = None
+        #print("Entra Refill")
         return
 
     def do(self):
@@ -331,6 +331,7 @@ class Running_Refill():
         return
 
     def escanear_colunas(self):
+        #print("Escaneando")
         for coluna in self.running.tabuleiro:
             for i in range(len(coluna)):
                 if coluna[i].tipo == "None":
@@ -343,11 +344,11 @@ class Running_Refill():
                     coluna[i].tint_out()
                     coluna[i - 1].tint_out()
                     return
-        self.running.current_state = Running_No_Select(self.game, self.running)
+        self.running.current_state = Running_Match(self.game, self.running)
 
     def novo_sprite(self):
         import random
         random.seed()
-        pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha"]
+        pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha", "flecha", "adaga", "punhais"]
         tipo = random.choice(pecas_disponiveis)
         return tipo
