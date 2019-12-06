@@ -30,10 +30,13 @@ class GS_GameRunning():
         self.largura_tabuleiro  = self.colunas * self.x_space
         self.tabuleiro          = []
         self.inimigos           = []
-        self.primeiro_tile      = None
-        self.segundo_tile       = None
+        #self.primeiro_tile      = None
+       # self.segundo_tile       = None
         self.primeiro_tile_     = None
         self.segundo_tile_      = None
+        self.movimentos         = self.game.movimentos
+        self.game.movimentos    += 1
+
         return
     
     def on_state_enter(self):
@@ -56,6 +59,7 @@ class GS_GameRunning():
 
     def render(self):
         dsman.drawStack(self.game_images)
+        self.game.janela.draw_text(str(self.movimentos), self.game.janela.width - 70, 30, size=45, color=(255, 255, 255), font_name="Arial", bold=False, italic=False)
         self.janela.update()
         return
     #End Region
@@ -65,12 +69,12 @@ class Running_Start():
     Subestado inicial do estado Running. Inicia o tabuleiro, inimigos e outros elementos do jogo
     """
     def __init__(self, game, running):
-        self.game           = game
-        self.running        = running
+        self.game               = game
+        self.running            = running
         self.set_images()
         self.create_matrix()
         self.create_enemies_list()
-        self.count_inimigos = 3
+        self.count_inimigos     = 3
         return
 
     def do(self):
@@ -142,9 +146,16 @@ class Running_No_Select():
         self.timer      = 0
         self.min_time   = 0.5
         self.mouse      = self.game.janela.get_mouse()
+        #if self.running.movimentos <= 0:
+        #    print("Game over")
+        #    self.running.current_state = GameOver(self.game, self.running)
+        #print("!")
         return
 
     def do(self):
+        if self.running.movimentos <= 0:
+            #print("Game over")
+            self.running.current_state = GameOver(self.game, self.running)
         self.primeiro_click()
         return
 
@@ -230,6 +241,7 @@ class Running_Select_2():
         return vizinhos
 
     def swap(self):
+        self.running.movimentos -=1
         tmp_tipo1                   = self.running.tabuleiro[self.running.primeiro_tile_[0]][self.running.primeiro_tile_[1]].tipo
         d1, d2                      = self.direcao()
         self.running.tabuleiro[self.running.primeiro_tile_[0]][self.running.primeiro_tile_[1]].current_state.swap(self.running.tabuleiro[self.running.segundo_tile_[0]][self.running.segundo_tile_[1]].tipo, d1)
@@ -263,7 +275,7 @@ class Running_Match():
             else: self.running.current_state  = Running_Refill(self.game, self.running)
             return
         self.swap_back()
-        print(self.game_over)
+        #print(self.game_over)
         #if self.game_over:  self.running.current_state  = Congrats(self.game, self.running)
         #else:               self.running.current_state  = Running_No_Select(self.game, self.running)
         self.running.current_state  = Running_No_Select(self.game, self.running)
@@ -383,3 +395,26 @@ class Congrats():
             self.timer = 0
             self.game.change_state(GameStates.Running)
         return
+
+class GameOver():
+    def __init__(self, game, running):
+        self.game       = game
+        self.running    = running
+        self.timer      = 0
+        self.min_time   = 1
+        print("Game Over")
+        return
+
+    def do(self):
+        self.game.janela.draw_text("Game Over", 100, 30, size=45, color=(255, 255, 255), font_name="Arial", bold=False, italic=False)
+        self.game.janela.draw_text("Tente outra vez", 100, 80, size=30, color=(255, 255, 255), font_name="Arial", bold=False, italic=False)
+        self.game.janela.update()
+        self.timer += self.game.janela.delta_time()
+        #print(self.timer)
+        if self.timer >= self.min_time:
+            self.timer = 0
+            self.game.count_inimigos = 1
+            self.game.movimentos = 5
+            self.game.change_state(GameStates.Menu)
+        return
+

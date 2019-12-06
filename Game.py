@@ -18,6 +18,7 @@ class Game():
         self.current_state = None
         self.change_state(GameStates.Menu)
         self.count_inimigos = 1
+        self.movimentos = 5
         return
     #End Region
     #Region Methods
