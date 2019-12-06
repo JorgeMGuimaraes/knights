@@ -17,7 +17,7 @@ class Tile:
         return
 
     def update(self):
-        current_state.do()
+        self.current_state.do()
         return
     
     def tint_out(self):
@@ -36,13 +36,14 @@ class Tile_Idle:
         self.game = game
         self.tile = tile
 
-    def do():
+    def do(self):
         return
 
     def swap(self, novo_tipo, nova_posicao):
         """Troca as imagens do tiles"""
         self.tile.tipo  = novo_tipo
         self.tile.tint_out()
+        #self.tile.current_state = Tile_Moving(self.game, self.tile, nova_posicao)
         return
 
 class Tile_Moving:
@@ -58,32 +59,32 @@ class Tile_Moving:
         self.nova_posicao()
         return
 
-    def do():
+    def do(self):
         self.mover()
         return
 
     def mover(self):
-        print("!")
+        #print("!")
         if self.dir == 'c':
-            self.tile.game_image.y - 10 * self.game.janela.delta_time()
+            self.tile.game_image.y - 1 * self.game.janela.delta_time()
             if self.tile.game_image.y <= self.y_inicial:
                 self.tile.game_image.y = self.y_inicial
                 self.tile.current_state = Tile_Idle(self.game, self.tile)
             return
         elif self.dir == 'b':
-            self.tile.game_image.y + 10 * self.game.janela.delta_time()
+            self.tile.game_image.y + 1 * self.game.janela.delta_time()
             if self.tile.game_image.y >= self.y_inicial:
                 self.tile.game_image.y = self.y_inicial
                 self.tile.current_state = Tile_Idle(self.game, self.tile)
             return
         elif self.dir == 'e':
-            self.tile.game_image.x - 10 * self.game.janela.delta_time()
+            self.tile.game_image.x - 1 * self.game.janela.delta_time()
             if self.tile.game_image.x <= self.x_inicial:
                 self.tile.game_image.x = self.x_inicial
                 self.tile.current_state = Tile_Idle(self.game, self.tile)
             return
         elif self.dir == 'd':
-            self.tile.game_image.x + 10 * self.game.janela.delta_time()
+            self.tile.game_image.x + 1 * self.game.janela.delta_time()
             if self.tile.game_image.x >= self.x_inicial:
                 self.tile.game_image.x = self.x_inicial
                 self.tile.current_state = Tile_Idle(self.game, self.tile)

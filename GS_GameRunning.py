@@ -49,6 +49,9 @@ class GS_GameRunning():
 
     def update(self):
         self.current_state.do()
+        for coluna in self.tabuleiro:
+            for tile in coluna:
+                tile.update()
         return
 
     def render(self):
@@ -91,9 +94,9 @@ class Running_Start():
         import random
         random.seed()
         #TODO: ver se eh possivel remover dicionario e ser somente lista
-        caminho = "Assets/images/"
-        extensao = ".png"
-        sel = "_selecionado"
+        #caminho = "Assets/images/"
+        #extensao = ".png"
+        #sel = "_selecionado"
         pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha"]
         x_start, y_start    = 10, self.running.top_bar
         x, y                = x_start, y_start
@@ -228,8 +231,8 @@ class Running_Select_2():
         for i in range(len(posicoes)):
             if (0 <= atual[0] + posicoes[i][0] < self.running.colunas) and (0 <= atual[1] + posicoes[i][1] <  self.running.linhas):
                 vizinhos.append([atual[0] + posicoes[i][0], atual[1] + posicoes[i][1]])
-        print(atual)
-        print(vizinhos)
+        #print(atual)
+        #print(vizinhos)
         return vizinhos
 
     def swap(self):
@@ -269,14 +272,15 @@ class Running_Match():
         limpar.extend(self.marcar(self.running.segundo_tile_, vertical))
         if self.match:
             for tile in limpar:
-                print("Limpar ", end="")
-                print(tile)
+                #print("Limpar ", end="")
+                #print(tile)
                 self.running.tabuleiro[tile[0]][tile[1]].tipo = "None"
                 self.running.tabuleiro[tile[0]][tile[1]].tint_out()
             self.match = False
+            self.running.current_state = Running_Refill(self.game, self.running)
         else:
             self.swap_back()
-        self.running.current_state  = Running_No_Select(self.game, self.running)
+            self.running.current_state  = Running_No_Select(self.game, self.running)
         return
             
     def marcar(self, elemento, direcoes):
@@ -294,7 +298,7 @@ class Running_Match():
         proximo             = [elemento[0] + direcao[0], elemento[1] + direcao[1]]
         while  (0 <= proximo[0] < self.running.colunas) and (0 <= proximo[1] <  self.running.linhas):
             if self.running.tabuleiro[proximo[0]][proximo[1]].tipo == tipo:
-                print("Semelhante: %d,%d"%(proximo[0], proximo[1]))
+                #print("Semelhante: %d,%d"%(proximo[0], proximo[1]))
                 lista_semelhantes.append(proximo)
                 proximo = [proximo[0] + direcao[0], proximo[1] + direcao[1]]
             else: return lista_semelhantes
@@ -307,3 +311,43 @@ class Running_Match():
         self.running.tabuleiro[self.running.segundo_tile_[0]][self.running.segundo_tile_[1]].current_state.swap(tmp_tipo1, d2)
         self.running.current_state  = Running_No_Select(self.game, self.running)
         return
+
+class Running_Refill():
+    def __init__(self, game, running):
+        self.game       = game
+        self.running    = running
+        self.timer      = 0
+        self.min_time   = 0.1
+        #self.match      = False
+        #self.limpar_todos()
+        print("!")
+        return
+
+    def do(self):
+        self.timer += self.game.janela.delta_time()
+        if self.timer >= self.min_time:
+            self.timer = 0
+            self.escanear_colunas()
+        return
+
+    def escanear_colunas(self):
+        for coluna in self.running.tabuleiro:
+            for i in range(len(coluna)):
+                if coluna[i].tipo == "None":
+                    if i == 0:
+                        coluna[i].tipo  = self.novo_sprite()
+                        coluna[i].tint_out()
+                        return
+                    coluna[i].tipo      = coluna[i - 1].tipo
+                    coluna[i - 1].tipo  = "None"
+                    coluna[i].tint_out()
+                    coluna[i - 1].tint_out()
+                    return
+        self.running.current_state = Running_No_Select(self.game, self.running)
+
+    def novo_sprite(self):
+        import random
+        random.seed()
+        pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha"]
+        tipo = random.choice(pecas_disponiveis)
+        return tipo
