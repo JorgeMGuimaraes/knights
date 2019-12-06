@@ -233,11 +233,11 @@ class Running_Select_2():
         return vizinhos
 
     def swap(self):
-        tmp_tipo1  = self.running.tabuleiro[self.running.primeiro_tile_[0]][self.running.primeiro_tile_[1]].tipo
-        d1, d2      = self.direcao()
+        tmp_tipo1                   = self.running.tabuleiro[self.running.primeiro_tile_[0]][self.running.primeiro_tile_[1]].tipo
+        d1, d2                      = self.direcao()
         self.running.tabuleiro[self.running.primeiro_tile_[0]][self.running.primeiro_tile_[1]].current_state.swap(self.running.tabuleiro[self.running.segundo_tile_[0]][self.running.segundo_tile_[1]].tipo, d1)
         self.running.tabuleiro[self.running.segundo_tile_[0]][self.running.segundo_tile_[1]].current_state.swap(tmp_tipo1, d2)
-        self.running.current_state = Running_Match(self.game, self.running)
+        self.running.current_state  = Running_Match(self.game, self.running)
         return
 
     def direcao(self):
@@ -251,16 +251,59 @@ class Running_Match():
         self.running    = running
         self.timer      = 0
         self.min_time   = 0.5
-        self.match = False
+        self.match      = False
+        #self.limpar_todos()
         return
 
     def do(self):
+        self.limpar_todos()
         return
 
     def limpar_todos(self):
-        if self.running.tabuleiro[i][j].tipo == "None": return
-        self.limpar(horizontal)
-        self.limpar(vertical)
+        horizontal                  = [[0, -1], [0, 1]]
+        vertical                    = [[-1, 0], [1, 0]]
+        limpar                      = []
+        limpar.extend(self.marcar(self.running.primeiro_tile_, horizontal))
+        limpar.extend(self.marcar(self.running.primeiro_tile_, vertical))
+        limpar.extend(self.marcar(self.running.segundo_tile_, horizontal))
+        limpar.extend(self.marcar(self.running.segundo_tile_, vertical))
         if self.match:
-            self.running.tabuleiro[i][j].tipo = "None"
-        
+            for tile in limpar:
+                print("Limpar ", end="")
+                print(tile)
+                self.running.tabuleiro[tile[0]][tile[1]].tipo = "None"
+                self.running.tabuleiro[tile[0]][tile[1]].tint_out()
+            self.match = False
+        else:
+            self.swap_back()
+        self.running.current_state  = Running_No_Select(self.game, self.running)
+        return
+            
+    def marcar(self, elemento, direcoes):
+        matches = []
+        for i in range(len(direcoes)): matches.extend(self.encontrar_semelhantes(elemento, direcoes[i]))
+        if len(matches) > 1:
+            self.match = True
+            matches.append(elemento)
+            return matches
+        return []
+
+    def encontrar_semelhantes(self, elemento, direcao):
+        lista_semelhantes   = []
+        tipo                = self.running.tabuleiro[elemento[0]][elemento[1]].tipo
+        proximo             = [elemento[0] + direcao[0], elemento[1] + direcao[1]]
+        while  (0 <= proximo[0] < self.running.colunas) and (0 <= proximo[1] <  self.running.linhas):
+            if self.running.tabuleiro[proximo[0]][proximo[1]].tipo == tipo:
+                print("Semelhante: %d,%d"%(proximo[0], proximo[1]))
+                lista_semelhantes.append(proximo)
+                proximo = [proximo[0] + direcao[0], proximo[1] + direcao[1]]
+            else: return lista_semelhantes
+        return lista_semelhantes
+
+    def swap_back(self):
+        tmp_tipo1                   = self.running.tabuleiro[self.running.primeiro_tile_[0]][self.running.primeiro_tile_[1]].tipo
+        d1, d2                      = 'e', 'd'
+        self.running.tabuleiro[self.running.primeiro_tile_[0]][self.running.primeiro_tile_[1]].current_state.swap(self.running.tabuleiro[self.running.segundo_tile_[0]][self.running.segundo_tile_[1]].tipo, d1)
+        self.running.tabuleiro[self.running.segundo_tile_[0]][self.running.segundo_tile_[1]].current_state.swap(tmp_tipo1, d2)
+        self.running.current_state  = Running_No_Select(self.game, self.running)
+        return
