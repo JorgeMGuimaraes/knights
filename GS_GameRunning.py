@@ -95,7 +95,8 @@ class Running_Start():
         """
         import random
         random.seed()
-        pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha", "adaga", "punhais"]
+        #pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha", "adaga", "punhais"]
+        pecas_disponiveis   = ["escudo", "punhais", "espada_dupla", "machadinha", "adaga"]
         x_start, y_start    = 10, self.running.top_bar
         x, y                = x_start, y_start
         anterior_esq        = [None] * self.running.linhas
@@ -370,8 +371,8 @@ class Running_Refill():
     def novo_sprite(self):
         import random
         random.seed()
-        #pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha", "flecha", "adaga", "punhais"]
-        pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha", "adaga", "punhais"]
+        #pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha", "flecha", "adaga, "punhais"]
+        pecas_disponiveis   = ["escudo", "punhais", "espada_dupla", "machadinha", "adaga"]
         tipo = random.choice(pecas_disponiveis)
         return tipo
 

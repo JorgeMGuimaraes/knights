@@ -7,6 +7,7 @@ from    PPlay.keyboard  import  *
 from    PPlay.mouse     import  *
 from    GameStates      import  *
 from    Button          import  *
+from PPlay.sound    import *
 #End Region
 
 class SubMenus(Enum):
