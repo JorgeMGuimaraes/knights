@@ -70,15 +70,15 @@ class GS_Menu():
         y_tela                              = self.janela.height * 0.5
         dist_btn                            = 70
         self.buttons[SubMenus.NewGame]      = Button("Assets/images/Btn_01.png", "Assets/images/Btn_hover_01.png", x_tela, y_tela, GameStates.Running)
-        y_tela                              += dist_btn
-        self.buttons[SubMenus.Dificuldades] = Button("Assets/images/Btn_03.png", "Assets/images/Btn_hover_03.png", x_tela, y_tela, GameStates.Dificuldades)
-        y_tela                              += dist_btn
-        self.buttons[SubMenus.Rankings]     = Button("Assets/images/Btn_05.png", "Assets/images/Btn_hover_05.png", x_tela, y_tela, GameStates.Ranking)
+        #y_tela                              += dist_btn
+        #self.buttons[SubMenus.Dificuldades] = Button("Assets/images/Btn_03.png", "Assets/images/Btn_hover_03.png", x_tela, y_tela, GameStates.Dificuldades)
+        #y_tela                              += dist_btn
+        #self.buttons[SubMenus.Rankings]     = Button("Assets/images/Btn_05.png", "Assets/images/Btn_hover_05.png", x_tela, y_tela, GameStates.Ranking)
         y_tela                              += dist_btn
         self.buttons[SubMenus.Exit]         = Button("Assets/images/Btn_07.png", "Assets/images/Btn_hover_07.png", x_tela, y_tela, GameStates.Exit)
         self.game_images.append(self.buttons[SubMenus.NewGame].game_image)
-        self.game_images.append(self.buttons[SubMenus.Dificuldades].game_image)
-        self.game_images.append(self.buttons[SubMenus.Rankings].game_image)
+        #self.game_images.append(self.buttons[SubMenus.Dificuldades].game_image)
+        #self.game_images.append(self.buttons[SubMenus.Rankings].game_image)
         self.game_images.append(self.buttons[SubMenus.Exit].game_image)        
         return
     #End Region

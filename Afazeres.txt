@@ -1,10 +1,10 @@
 [x] Não combinar 3 em linha na criação da matriz
-mover peças
-eliminar peças
-remover um inimigo
-repor inimigo, se necessario
-criar novas peças no lugar das eliminardas
-Adicionar foreground
-Adicionar mais peças
-Placar em bitmap
+[x]mover peças
+[x]eliminar peças
+[x]remover um inimigo
+[x]repor inimigo, se necessario
+[x]criar novas peças no lugar das eliminardas
+---Adicionar foreground
+[x]Adicionar mais peças
+---Placar em bitmap
 publicar na steam
