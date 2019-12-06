@@ -5,12 +5,14 @@ class Tile:
     Classe dos blocos do jogo
     """
     
-    def __init__(self, game, x, y, path, path_selecionado):
+    def __init__(self, game, x, y, tipo):
         self.game           = game
         self.current_state  = Tile_Idle(game, self)
-        self.path           = path
-        self.selecionado    = path_selecionado
-        self.game_image     = GameImage(self.path)
+        self.tipo           = tipo
+        self.caminho        = "Assets/images/"
+        self.extensao       = ".png"
+        self.sel            = "_selecionado"
+        self.game_image     = GameImage(self.caminho + tipo + self.extensao)
         self.game_image.set_position(x, y)
         return
 
@@ -19,10 +21,10 @@ class Tile:
         return
     
     def tint_out(self):
-        self.game_image.set_image(self.path)
+        self.game_image.set_image(self.caminho + self.tipo + self.extensao)
         return
     def tint_in(self):
-        self.game_image.set_image(self.selecionado)
+        self.game_image.set_image(self.caminho + self.tipo + self.sel + self.extensao)
         return
 
 class Tile_Idle:
@@ -37,9 +39,10 @@ class Tile_Idle:
     def do():
         return
 
-    def swap(self, novo_path, novo_sel, nova_posicao):
-        self.tile.path          = novo_path
-        self.tile.selecionado   = novo_sel
+    def swap(self, novo_tipo, nova_posicao):
+        """Troca as imagens do tiles"""
+        self.tile.tipo  = novo_tipo
+        self.tile.tint_out()
         return
 
 class Tile_Moving:
