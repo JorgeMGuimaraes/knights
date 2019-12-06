@@ -65,11 +65,12 @@ class Running_Start():
     Subestado inicial do estado Running. Inicia o tabuleiro, inimigos e outros elementos do jogo
     """
     def __init__(self, game, running):
-        self.game       = game
-        self.running    = running
+        self.game           = game
+        self.running        = running
         self.set_images()
         self.create_matrix()
         self.create_enemies_list()
+        self.count_inimigos = 3
         return
 
     def do(self):
@@ -80,11 +81,8 @@ class Running_Start():
         bg      = GameImage("Assets/images/bg.png")
         energia = GameImage("Assets/images/energia.png")
         energia.set_position(900,150)
-        placar  = GameImage("Assets/images/placar.png")
-        placar.set_position(self.game.janela.width - placar.width, 50)
         self.running.game_images.append(bg)
         self.running.game_images.append(energia)
-        self.running.game_images.append(placar)
         return
 
     def create_matrix(self):
@@ -93,11 +91,7 @@ class Running_Start():
         """
         import random
         random.seed()
-        #TODO: ver se eh possivel remover dicionario e ser somente lista
-        #caminho = "Assets/images/"
-        #extensao = ".png"
-        #sel = "_selecionado"
-        pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha", "flecha", "adaga", "punhais"]
+        pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha", "adaga", "punhais"]
         x_start, y_start    = 10, self.running.top_bar
         x, y                = x_start, y_start
         anterior_esq        = [None] * self.running.linhas
@@ -106,13 +100,11 @@ class Running_Start():
         for i in range(self.running.colunas):
             coluna  = []
             for j in range(self.running.linhas):
-                #possiveis_escolhas = list(pecas_disponiveis.values())
                 possiveis_escolhas = pecas_disponiveis.copy()
                 if possiveis_escolhas.count(anterior_esq[j]) > 0: possiveis_escolhas.remove(anterior_esq[j])
                 if possiveis_escolhas.count(anterior_acima) > 0 : possiveis_escolhas.remove(anterior_acima)
             
                 e_type          = random.choice(possiveis_escolhas)
-                #tile            = Tile(self.game, x, y, caminho + e_type + extensao, caminho + e_type + sel + extensao)
                 tile            = Tile(self.game, x, y, e_type)
                 coluna.append(tile)
                 self.running.game_images.append(tile.game_image)
@@ -133,7 +125,9 @@ class Running_Start():
         enemies             = ["Assets/images/Inimigo_1_verde.png", "Assets/images/Inimigo_1_verm.png", "Assets/images/Inimigo_2.png", "Assets/images/Inimigo_3.png"]
         start_x, start_y    = 10, 25
         x, y                = start_x, start_y
-        for j in range(self.running.colunas):                
+        tamanho = min(self.game.count_inimigos, self.running.colunas)
+        self.game.count_inimigos += 1
+        for j in range(tamanho):                
             e_type  = random.choice(enemies)
             enemy   = Enemy(self.game, x, y, e_type)
             self.running.inimigos.append(enemy)
@@ -255,6 +249,7 @@ class Running_Match():
         self.timer      = 0
         self.min_time   = 0.5
         self.match      = False
+        self.game_over  = False
         return
 
     def do(self):
@@ -264,9 +259,13 @@ class Running_Match():
         if self.match:
             self.match                  = False
             self.atacar_inimigo()
-            self.running.current_state  = Running_Refill(self.game, self.running)
+            if self.game_over:  self.running.current_state  = Congrats(self.game, self.running)
+            else: self.running.current_state  = Running_Refill(self.game, self.running)
             return
         self.swap_back()
+        print(self.game_over)
+        #if self.game_over:  self.running.current_state  = Congrats(self.game, self.running)
+        #else:               self.running.current_state  = Running_No_Select(self.game, self.running)
         self.running.current_state  = Running_No_Select(self.game, self.running)
         return
 
@@ -318,7 +317,8 @@ class Running_Match():
         if l > 0:
             e = self.running.inimigos.pop(l - 1)
             self.running.game_images.remove(e.game_image)
-        else: print("Fim de fase")
+        if len(self.running.inimigos) <= 0:
+            self.game_over = True
         return
 
 class Running_Refill():
@@ -358,6 +358,28 @@ class Running_Refill():
     def novo_sprite(self):
         import random
         random.seed()
-        pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha", "flecha", "adaga", "punhais"]
+        #pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha", "flecha", "adaga", "punhais"]
+        pecas_disponiveis   = ["escudo", "espada", "espada_dupla", "machadinha", "adaga", "punhais"]
         tipo = random.choice(pecas_disponiveis)
         return tipo
+
+class Congrats():
+
+    def __init__(self, game, running):
+        self.game       = game
+        self.running    = running
+        self.timer      = 0
+        self.min_time   = 1
+        #print("Congrats")
+        return
+
+    def do(self):
+        self.game.janela.draw_text("Congrats", 100, 30, size=45, color=(255, 255, 255), font_name="Arial", bold=False, italic=False)
+        self.game.janela.draw_text("Cuidado, mais oponentes a caminho!", 100, 80, size=30, color=(255, 255, 255), font_name="Arial", bold=False, italic=False)
+        self.game.janela.update()
+        self.timer += self.game.janela.delta_time()
+        #print(self.timer)
+        if self.timer >= self.min_time:
+            self.timer = 0
+            self.game.change_state(GameStates.Running)
+        return

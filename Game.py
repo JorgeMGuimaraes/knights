@@ -8,15 +8,16 @@ from    GS_Exit         import  *
 #End Region
 class Game():
     #Region Fields
-    is_playing      = True
-    janela          = dsman.iniciarJanela()
-    game_states     = dict()
-    difficulty      = Dificuldades.Normal
+    is_playing          = True
+    janela              = dsman.iniciarJanela()
+    game_states         = dict()
+    difficulty          = Dificuldades.Normal
     #End Region
     #Region Constructors
     def __init__(self):
         self.current_state = None
         self.change_state(GameStates.Menu)
+        self.count_inimigos = 1
         return
     #End Region
     #Region Methods
