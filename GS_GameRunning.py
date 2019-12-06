@@ -263,6 +263,7 @@ class Running_Match():
                 self.limpar_todos([col, lin])
         if self.match:
             self.match                  = False
+            self.atacar_inimigo()
             self.running.current_state  = Running_Refill(self.game, self.running)
             return
         self.swap_back()
@@ -310,6 +311,14 @@ class Running_Match():
         self.running.tabuleiro[self.running.primeiro_tile_[0]][self.running.primeiro_tile_[1]].current_state.swap(self.running.tabuleiro[self.running.segundo_tile_[0]][self.running.segundo_tile_[1]].tipo, d1)
         self.running.tabuleiro[self.running.segundo_tile_[0]][self.running.segundo_tile_[1]].current_state.swap(tmp_tipo1, d2)
         self.running.current_state  = Running_No_Select(self.game, self.running)
+        return
+
+    def atacar_inimigo(self):
+        l = len(self.running.inimigos)
+        if l > 0:
+            e = self.running.inimigos.pop(l - 1)
+            self.running.game_images.remove(e.game_image)
+        else: print("Fim de fase")
         return
 
 class Running_Refill():
